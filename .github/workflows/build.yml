@@ -24,7 +24,7 @@ jobs:
 
       # Paso 4: Listar archivos en el directorio de compilación
       - name: List build directory
-        run: ls -R .pio/build/esp32dev/
+        run: ls -R .pio/build/upesy_wroom
 
       # Paso 5: Crear version.json
       - name: Create version.json
@@ -37,7 +37,7 @@ jobs:
         with:
           tag_name: v1.0.1
           files: |
-            .pio/build/esp32dev/firmware.bin  # Asegúrate de que este archivo exista
+            .pio/build/upesy_wroom/firmware.bin  # Asegúrate de que este archivo exista
             version.json
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }} # Usa tu token personal
