@@ -38,4 +38,4 @@ jobs:
             .pio/build/upesy_wroom/firmware.bin
             version.json
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}  # Use the GitHub token
