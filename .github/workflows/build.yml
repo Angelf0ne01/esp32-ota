@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    tags:
-      - "v*.*.*" # Trigger the workflow for tags matching this pattern
+    branches:
+      - main  # Trigger the workflow on pushes to the main branch
 
 jobs:
   build:
@@ -27,11 +27,15 @@ jobs:
           echo '{ "version": "1.0.1", "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1 # Use a common release action
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }} # Uses the current tag
+          tag_name: "latest"  # You can use a constant tag like 'latest' for the release
+          release_name: "Release from main"
+          body: "Release notes for the latest build."
+          draft: false
+          prerelease: false
           files: |
             .pio/build/upesy_wroom/firmware.bin
             version.json
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }} # Use the GitHub token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token
