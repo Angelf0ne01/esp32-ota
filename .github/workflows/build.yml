@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - '*'  # Activar el flujo de trabajo para cualquier etiqueta
 
 jobs:
   build:
@@ -24,38 +22,19 @@ jobs:
       - name: List build directory
         run: ls -R .pio/build/upesy_wroom
 
-      - name: Create version.json
-        run: |
-          echo '{ "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
-
-      - name: Check for existing release
-        id: check_release
-        run: |
-          release_data=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
-          if echo "$release_data" | grep -q '"id":'; then
-            echo "Release already exists."
-            echo "$release_data" | jq -r '.upload_url' | sed 's/{?name,label}//' > upload_url.txt
-            echo "exists=true" >> $GITHUB_ENV
-          else
-            echo "Release does not exist."
-            echo "exists=false" >> $GITHUB_ENV
-          fi
-
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: Release notes
+          tag_name: latest  # Usar un tag genérico sin versionado
+          release_name: "Latest Release"  # Nombre del release
+          body: "Latest firmware release"  # Notas del release
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
-        if: env.exists == 'false'  # Solo crear el release si no existe
 
-      - name: Upload Release Assets
-        if: env.exists == 'false'
+      - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -64,28 +43,9 @@ jobs:
           asset_content_type: application/octet-stream
 
       - name: Upload version.json
-        if: env.exists == 'false'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: version.json
-          asset_name: version.json
-          asset_content_type: application/json
-
-      - name: Upload Assets to Existing Release
-        if: env.exists == 'true'
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.check_release.outputs.upload_url }}  # Usar el URL de la release existente
-          asset_path: .pio/build/upesy_wroom/firmware.bin
-          asset_name: firmware.bin
-          asset_content_type: application/octet-stream
-
-      - name: Upload version.json to Existing Release
-        if: env.exists == 'true'
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.check_release.outputs.upload_url }}  # Usar el URL de la release existente
           asset_path: version.json
           asset_name: version.json
           asset_content_type: application/json
