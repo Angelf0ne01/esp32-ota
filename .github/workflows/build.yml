@@ -1,0 +1,35 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main  # Cambia a la rama que desees usar para las compilaciones automáticas
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup PlatformIO
+        uses: platformio/platformio-action@v2
+
+      - name: Build the firmware
+        run: |
+          pio run -t build  # Compila el firmware
+
+      - name: Create version.json
+        run: |
+          echo '{ "version": "1.0.1", "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag: v1.0.1  # Cambia al formato de versión que estés usando
+          files: |
+            .pio/build/esp32dev/firmware.bin  # Cambia al nombre y ruta correctos de tu archivo .bin
+            version.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
