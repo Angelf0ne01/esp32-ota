@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*.*.*" # Solo ejecuta el flujo de trabajo para etiquetas que sigan este patrón
+      - "v*.*.*" # Trigger the workflow for tags matching this pattern
 
 jobs:
   build:
@@ -27,11 +27,11 @@ jobs:
           echo '{ "version": "1.0.1", "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
 
       - name: Create Release
-        uses: release-tag-action@v1
+        uses: softprops/action-gh-release@v1 # Use a common release action
         with:
-          tag: ${{ github.ref }} # Utiliza la etiqueta actual
+          tag_name: ${{ github.ref }} # Uses the current tag
           files: |
             .pio/build/upesy_wroom/firmware.bin
             version.json
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }} # Usa tu token personal
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Use the GitHub token
