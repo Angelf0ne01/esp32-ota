@@ -3,7 +3,9 @@ name: Build and Release
 on:
   push:
     branches:
-      - main # Cambia esto según la rama que desees usar para las compilaciones automáticas
+      - main  # Cambia esto según la rama que desees usar para las compilaciones automáticas
+    tags:
+      - '*'  # Esto activará el flujo de trabajo para cualquier etiqueta
 
 jobs:
   build:
@@ -30,8 +32,8 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}  # Aquí usamos solo el nombre del tag
+          release_name: Release ${{ github.ref_name }}  # Nombre del release
           body: Release notes
           draft: false
           prerelease: false
