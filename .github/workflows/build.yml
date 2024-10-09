@@ -31,7 +31,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag: v1.0.1 # Cambia al formato de versión que estés usando
+          tag_name: v1.0.1 # Cambia al formato de versión que estés usando
           files: |
             .pio/build/esp32dev/firmware.bin  # Cambia al nombre y ruta correctos de tu archivo .bin
             version.json
