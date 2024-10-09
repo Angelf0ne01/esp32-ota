@@ -3,27 +3,31 @@ name: Build and Release
 on:
   push:
     branches:
-      - main  # Cambia a la rama que desees usar para las compilaciones automáticas
+      - main # Cambia esto según la rama que desees usar para las compilaciones automáticas
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      # Paso 1: Hacer checkout del repositorio
+      - name: Checkout code
         uses: actions/checkout@v2
 
+      # Paso 2: Configurar PlatformIO
       - name: Setup PlatformIO
-        uses: platformio/action-compile@v1
+        uses: n-vr/setup-platformio-action@v1 # Usando la acción correcta
 
-      - name: Build the firmware
-        run: |
-          pio run -t build  # Compila el firmware
+      # Paso 3: Construir el proyecto PlatformIO
+      - name: Build PlatformIO project
+        run: pio run # Compila el firmware
 
+      # Paso 4: Crear version.json
       - name: Create version.json
         run: |
           echo '{ "version": "1.0.1", "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
 
+      # Paso 5: Crear una nueva Release
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -32,4 +36,4 @@ jobs:
             .pio/build/esp32dev/firmware.bin  # Cambia al nombre y ruta correctos de tu archivo .bin
             version.json
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Este es el token predeterminado de GitHub
