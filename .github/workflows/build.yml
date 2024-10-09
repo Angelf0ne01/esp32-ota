@@ -31,8 +31,10 @@ jobs:
       - name: Check for existing release
         id: check_release
         run: |
-          if curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" | grep -q '"id":'; then
+          release_data=$(curl -s "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
+          if echo "$release_data" | grep -q '"id":'; then
             echo "Release already exists."
+            echo "$release_data" | jq -r '.upload_url' | sed 's/{?name,label}//' > upload_url.txt
             echo "exists=true" >> $GITHUB_ENV
           else
             echo "Release does not exist."
@@ -53,28 +55,28 @@ jobs:
         if: env.exists == 'false'  # Solo crear el release si no existe
 
       - name: Upload Release Assets
+        if: env.exists == 'false'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: .pio/build/upesy_wroom/firmware.bin
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
-        if: env.exists == 'false'  # Solo subir assets si se creó el release
 
       - name: Upload version.json
+        if: env.exists == 'false'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: version.json
           asset_name: version.json
           asset_content_type: application/json
-        if: env.exists == 'false'  # Solo subir assets si se creó el release
 
       - name: Upload Assets to Existing Release
         if: env.exists == 'true'
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}  # Usar el URL de la release existente
+          upload_url: ${{ steps.check_release.outputs.upload_url }}  # Usar el URL de la release existente
           asset_path: .pio/build/upesy_wroom/firmware.bin
           asset_name: firmware.bin
           asset_content_type: application/octet-stream
@@ -83,7 +85,7 @@ jobs:
         if: env.exists == 'true'
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}  # Usar el URL de la release existente
+          upload_url: ${{ steps.check_release.outputs.upload_url }}  # Usar el URL de la release existente
           asset_path: version.json
           asset_name: version.json
           asset_content_type: application/json
