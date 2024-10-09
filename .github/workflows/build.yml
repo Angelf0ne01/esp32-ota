@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"  # Solo ejecuta el flujo de trabajo para etiquetas que sigan este patrón
 
 jobs:
   build:
@@ -22,30 +22,16 @@ jobs:
       - name: List build directory
         run: ls -R .pio/build/upesy_wroom
 
+      - name: Create version.json
+        run: |
+          echo '{ "version": "1.0.1", "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
+
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+        uses: release-tag-action@v1
         with:
-          tag_name: latest  # Usar un tag genérico sin versionado
-          release_name: "Latest Release"  # Nombre del release
-          body: "Latest firmware release"  # Notas del release
-          draft: false
-          prerelease: false
+          tag: ${{ github.ref }}  # Utiliza la etiqueta actual
+          files: |
+            .pio/build/upesy_wroom/firmware.bin
+            version.json
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: .pio/build/upesy_wroom/firmware.bin
-          asset_name: firmware.bin
-          asset_content_type: application/octet-stream
-
-      - name: Upload version.json
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: version.json
-          asset_name: version.json
-          asset_content_type: application/json
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}  # Usa tu token personal
