@@ -2,42 +2,54 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main # Cambia esto según la rama que desees usar para las compilaciones automáticas
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Paso 1: Hacer checkout del repositorio
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Paso 2: Configurar PlatformIO
       - name: Setup PlatformIO
         uses: n-vr/setup-platformio-action@v1
 
-      # Paso 3: Construir el proyecto PlatformIO
       - name: Build PlatformIO project
         run: pio run
 
-      # Paso 4: Listar archivos en el directorio de compilación
       - name: List build directory
         run: ls -R .pio/build/upesy_wroom
 
-      # Paso 5: Crear version.json
       - name: Create version.json
         run: |
           echo '{ "version": "1.0.1", "url": "https://github.com/${{ github.repository }}/releases/latest/download/firmware.bin" }' > version.json
 
-      # Paso 6: Crear una nueva Release
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          tag_name: v1.0.1
-          files: |
-            .pio/build/upesy_wroom/firmware.bin  # Asegúrate de que este archivo exista
-            version.json
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: Release notes
+          draft: false
+          prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }} # Usa tu token personal
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: .pio/build/upesy_wroom/firmware.bin
+          asset_name: firmware.bin
+          asset_content_type: application/octet-stream
+
+      - name: Upload version.json
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: version.json
+          asset_name: version.json
+          asset_content_type: application/json
